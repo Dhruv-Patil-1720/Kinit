@@ -14,6 +14,7 @@
   };
 
   const rows = new Map();
+  const narrationLines = new Map();
   let probeReady = false;
 
   function setCounters(counts) {
@@ -25,17 +26,37 @@
   function ensureRow(twinId) {
     let row = rows.get(twinId);
     if (row) return row;
-    row = document.createElement("div");
-    row.className = "twin-row status-pending";
-    row.innerHTML = `
-      <span class="twin-id">${twinId}</span>
-      <span class="twin-desc">forging&hellip;</span>
-      <span class="twin-family"></span>
-      <span class="pill status-pending">pending</span>
+
+    const block = document.createElement("div");
+    block.className = "twin-block";
+    block.innerHTML = `
+      <div class="twin-row status-pending">
+        <span class="twin-id">${twinId}</span>
+        <span class="twin-desc">forging&hellip;</span>
+        <span class="twin-family"></span>
+        <span class="pill status-pending">pending</span>
+      </div>
+      <div class="twin-narration hidden"></div>
     `;
-    feedEl.appendChild(row);
+    feedEl.appendChild(block);
+
+    row = block.querySelector(".twin-row");
     rows.set(twinId, row);
+    narrationLines.set(twinId, block.querySelector(".twin-narration"));
     return row;
+  }
+
+  function applyNarrationLine(twinId, line) {
+    ensureRow(twinId);
+    const el = narrationLines.get(twinId);
+    if (el && line) {
+      el.textContent = `\u201c${line}\u201d`;
+      el.classList.remove("hidden");
+    }
+  }
+
+  function applyNarrationLines(twinLines) {
+    Object.entries(twinLines || {}).forEach(([twinId, line]) => applyNarrationLine(twinId, line));
   }
 
   function onTwinSpawned(ev) {
@@ -69,6 +90,10 @@
     revealContinue();
   }
 
+  function onNarrationReady(ev) {
+    applyNarrationLines(ev.twin_lines);
+  }
+
   function revealContinue() {
     continueRow.style.display = "flex";
     continueBtn.textContent = probeReady
@@ -90,6 +115,11 @@
         break;
       case "pipeline_done":
         onPipelineDone(ev);
+        break;
+      case "narration_ready":
+        onNarrationReady(ev);
+        break;
+      case "narration_skipped":
         break;
       default:
         break;
@@ -117,6 +147,7 @@
       onTwinResult({ twin_id: t.twin_id, status: t.status });
       if (t.has_witness) witnessBanner.classList.add("show");
     });
+    applyNarrationLines(status.narration_twin_lines);
     if (status.pipeline_status === "done") {
       probeReady = status.probe_ready;
       revealContinue();
@@ -126,7 +157,7 @@
     source.onmessage = (msg) => {
       const ev = JSON.parse(msg.data);
       applyEvent(ev);
-      if (ev.type === "pipeline_done") source.close();
+      if (ev.type === "narration_ready" || ev.type === "narration_skipped") source.close();
     };
   }
 

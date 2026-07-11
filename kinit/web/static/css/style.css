@@ -235,6 +235,21 @@ button.ghost {
   gap: 10px;
 }
 
+.twin-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.twin-narration {
+  font-size: 15px;
+  font-style: italic;
+  color: var(--dim);
+  padding: 6px 18px 0 18px;
+  margin-left: 4px;
+  border-left: 2px solid var(--border);
+}
+
 .twin-row {
   display: flex;
   align-items: center;

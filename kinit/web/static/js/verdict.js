@@ -7,6 +7,8 @@
   const scorePanel = document.getElementById("score-panel");
   const artifactsBtn = document.getElementById("artifacts-btn");
   const artifactsList = document.getElementById("artifacts-list");
+  const narrationCard = document.getElementById("narration-card");
+  const narrationReport = document.getElementById("narration-report");
 
   const HUNK_TITLES = {
     idempotency: "Idempotent event settlement",
@@ -36,6 +38,11 @@
     const pass = data.score.symbiosis_index >= 82;
     finalBadge.className = `final-badge ${pass ? "pass" : "fail"}`;
     finalBadge.textContent = pass ? `\u2605 ${data.badge}` : data.badge;
+
+    if (data.narration_report) {
+      narrationReport.textContent = data.narration_report;
+      narrationCard.classList.remove("hidden");
+    }
 
     Object.keys(HUNK_TITLES).forEach((hunkId) => {
       const status = data.hunks[hunkId] || "untested";

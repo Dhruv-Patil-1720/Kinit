@@ -57,6 +57,7 @@ sys.path.insert(0, str(REPO_ROOT / "agents"))
 import twin_runner  # noqa: E402
 import witness as witness_mod  # noqa: E402
 import forger  # noqa: E402
+import narrator  # noqa: E402
 
 HUNKS_ORDER = ["idempotency", "rounding", "redeem_check"]
 
@@ -170,6 +171,9 @@ class RunState:
         self.probe_a_is_real = None
         self.probe_choice = None
         self.probe_correct = None
+
+        self.narration = None  # {"twin_lines": {...}, "report": "..."} or None
+        self.stream_finished = False  # narration attempted (success or not); SSE can close
 
         self.events_log = []
         self.subscribers = []
@@ -383,6 +387,17 @@ def run_pipeline(run: RunState):
     run.pipeline_status = "done"
     run.emit({"type": "pipeline_done", "counts": run.counts(), "probe_twin_id": run.probe_twin_id})
 
+    # Additive-only: narrate the deterministic artifacts we just wrote.
+    # narrate() never raises, so a missing network (rehearsal-offline demo)
+    # or a bad model response simply leaves run.narration as None and the
+    # UI renders exactly as if this step never ran.
+    run.narration = narrator.narrate(str(run.dir))
+    if run.narration:
+        run.emit({"type": "narration_ready", "twin_lines": run.narration.get("twin_lines", {})})
+    else:
+        run.emit({"type": "narration_skipped"})
+    run.stream_finished = True
+
 
 # --------------------------------------------------------------------------
 # App + static pages
@@ -491,6 +506,7 @@ def api_status():
         "counts": run.counts(),
         "twins": run.twins,
         "probe_ready": run.probe_twin_id is not None,
+        "narration_twin_lines": (run.narration or {}).get("twin_lines", {}),
     }
 
 
@@ -510,12 +526,12 @@ def sse_events():
             try:
                 ev = q.get(timeout=1.0)
             except queue.Empty:
-                if run.pipeline_status == "done":
+                if run.stream_finished:
                     return
                 yield ": heartbeat\n\n"
                 continue
             yield _sse_format(ev)
-            if ev.get("type") == "pipeline_done":
+            if ev.get("type") in ("narration_ready", "narration_skipped"):
                 return
 
     return StreamingResponse(gen(), media_type="text/event-stream")
@@ -624,6 +640,7 @@ def api_verdict():
             "symbiosis_index": symbiosis_index,
         },
         "badge": badge,
+        "narration_report": (run.narration or {}).get("report"),
     }
 
     with open(run.dir / "ledger.json", "w") as fh:
@@ -648,7 +665,7 @@ def api_artifacts():
                 if fpath.is_file():
                     paths.append(str(fpath.relative_to(REPO_ROOT)))
 
-    for fname in ("verdicts.jsonl", "ledger.json"):
+    for fname in ("verdicts.jsonl", "ledger.json", "narration.json"):
         fpath = run.dir / fname
         if fpath.is_file():
             paths.append(str(fpath.relative_to(REPO_ROOT)))
