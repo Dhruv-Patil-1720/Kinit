@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>kinit — Review</title>
+<link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+<div class="wrap">
+  <div class="badge-step">STEP 1 / 4 &mdash; REVIEW</div>
+  <h1>Review the AI-generated PR</h1>
+  <p class="subtitle">ledger.py was written end-to-end by an AI. Read each hunk, click "Verified" once you actually understand it.</p>
+
+  <div id="hunks"></div>
+
+  <div class="actions-row">
+    <button id="merge-btn" class="primary" disabled>Merge</button>
+    <button id="rehearsal-btn" class="ghost" disabled>Load rehearsal twins (offline)</button>
+  </div>
+  <p class="mode-toggle">"Merge" calls Gemini live. "Load rehearsal twins" replays a saved run through the same harness + witness &mdash; works with Wi-Fi off.</p>
+</div>
+
+<script src="/static/js/review.js"></script>
+</body>
+</html>

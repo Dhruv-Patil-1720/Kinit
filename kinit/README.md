@@ -11,9 +11,19 @@ kinit/
   target/loyaltyledger/
     ledger.py            # pure-function settlement core (dict in -> dict out)
     tests/test_ledger.py # pytest suite
-  runs/                  # generated run artifacts (gitignored, kept via .gitkeep)
+  harness/
+    twin_runner.py       # applies a twin (patch or full file), runs its tests, emits a verdict
+    witness.py           # finds a concrete input where a surviving twin diverges from the real ledger
+  agents/
+    forger.py            # generates adversarial "twins" of ledger.py with Gemini
   demo/
     demo.py              # small runnable walkthrough
+    hand_twins/           # two hand-written patches used to sanity-check the harness
+    rehearsal_twins/       # a saved forger run, used as the offline/no-Wi-Fi demo fallback
+  web/
+    app.py                # FastAPI backend for the 4 demo screens
+    static/                # plain HTML/CSS/JS (no framework, no build step)
+  runs/                   # generated run artifacts (gitignored, kept via .gitkeep)
 ```
 
 ## `ledger.py`
@@ -70,3 +80,41 @@ cd target/loyaltyledger
 ```bash
 .venv/bin/python demo/demo.py
 ```
+
+## Mutation-testing pipeline (CLI)
+
+```bash
+# Run a single hand-written twin through the harness
+.venv/bin/python harness/twin_runner.py --patch demo/hand_twins/obvious.patch --run-dir runs/dev
+
+# Forge + evaluate 8 AI-generated twins (needs GEMINI_API_KEY in .env)
+.venv/bin/python agents/forger.py --n 8 --run-dir runs/dev
+
+# Find a concrete input where a surviving twin diverges from the real ledger
+.venv/bin/python harness/witness.py --twin runs/dev/twins/twin_06
+```
+
+## Web UI (the 4 demo screens)
+
+```bash
+.venv/bin/python -m uvicorn web.app:app --port 8000
+```
+
+Then open `http://localhost:8000/review`. The flow is a single "run" at a
+time, state held in-memory plus `runs/<id>/` files on disk:
+
+1. **`/review`** — the "AI-generated PR": 3 hardcoded diff hunks (idempotency,
+   rounding, redeem check). Click "Verified" on all three to unlock Merge.
+2. **`/forge`** — on Merge, the backend forges 8 twins with Gemini, runs each
+   through `twin_runner.py`, then runs `witness.py` on every survivor.
+   Progress streams live over SSE. "Load rehearsal twins" on the review
+   screen runs the identical pipeline from `demo/rehearsal_twins/` instead of
+   calling Gemini — the harness and witness finder still run live, so this
+   path works with Wi-Fi off.
+3. **`/probe`** — for the surviving twin with a witness, guess which of two
+   outputs your own (verified) code actually produces for the witness input.
+4. **`/verdict`** — per-hunk ledger (proven / could-not-defend / untested)
+   plus the score panel (`Override Value`, `Probe Defense`, `Symbiosis
+   Index`) and the final `KINIT VERIFIED` / `UNVERIFIED` badge. Writes
+   `runs/<id>/ledger.json`. "Show artifacts" lists every file the run
+   produced.

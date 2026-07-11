@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>kinit — Forge</title>
+<link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+<div class="wrap">
+  <div class="badge-step">STEP 2 / 4 &mdash; FORGE</div>
+  <h1>Twins are attacking your merged code</h1>
+  <p class="subtitle" id="mode-line">Generating adversarial twins and running them through your test suite live&hellip;</p>
+
+  <div id="witness-banner" class="witness-banner">BLIND SPOT PROVEN</div>
+
+  <div class="counters">
+    <div class="counter forged"><div class="num" id="c-forged">0</div><div class="label">twins forged</div></div>
+    <div class="counter killed"><div class="num" id="c-killed">0</div><div class="label">killed by your tests</div></div>
+    <div class="counter survived"><div class="num" id="c-survived">0</div><div class="label">survived</div></div>
+  </div>
+
+  <div class="feed" id="feed"></div>
+
+  <div class="actions-row" id="continue-row" style="display:none; margin-top: 28px;">
+    <button class="primary" id="continue-btn">Continue to Probe</button>
+  </div>
+</div>
+
+<script src="/static/js/forge.js"></script>
+</body>
+</html>

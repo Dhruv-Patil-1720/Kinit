@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>kinit — Verdict</title>
+<link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+<div class="wrap">
+  <div class="badge-step">STEP 4 / 4 &mdash; VERDICT</div>
+  <h1>Verdict</h1>
+  <p class="subtitle" id="run-line"></p>
+
+  <div id="final-badge" class="final-badge"></div>
+
+  <h2>Per-hunk ledger</h2>
+  <table class="ledger">
+    <thead>
+      <tr><th>Hunk</th><th>Claim</th><th>Status</th></tr>
+    </thead>
+    <tbody id="ledger-body"></tbody>
+  </table>
+
+  <h2>Score</h2>
+  <div class="score-panel" id="score-panel"></div>
+
+  <div class="card">
+    <button id="artifacts-btn">Show artifacts</button>
+    <div id="artifacts-list" class="artifacts-list"></div>
+  </div>
+
+  <div class="actions-row" style="margin-top: 24px;">
+    <button class="primary" onclick="window.location.href='/review'">Run again</button>
+  </div>
+</div>
+
+<script src="/static/js/verdict.js"></script>
+</body>
+</html>

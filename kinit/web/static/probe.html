@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>kinit — Probe</title>
+<link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+<div class="wrap">
+  <div class="badge-step">STEP 3 / 4 &mdash; PROBE</div>
+  <h1>You verified this code. Do you actually know it?</h1>
+  <p class="subtitle" id="twin-line"></p>
+
+  <div id="probe-body">
+    <h2>Input events</h2>
+    <div class="events-box" id="events-box"></div>
+
+    <p class="probe-question">
+      One of these is the code you just verified. One is a forgery.<br />
+      Your test suite passes <strong>both</strong>.
+      <span class="rule">What does YOUR code actually return for this input?</span>
+    </p>
+
+    <div class="probe-options" id="options"></div>
+    <div id="probe-result" class="probe-result"></div>
+
+    <div class="actions-row" id="next-row" style="display:none; margin-top: 10px;">
+      <button class="primary" id="verdict-btn">See Verdict</button>
+    </div>
+  </div>
+
+  <div id="no-probe" class="card hidden">
+    <p>No surviving twin with a witness in this run &mdash; your test suite caught everything. Nothing to probe.</p>
+    <div class="actions-row">
+      <button class="primary" onclick="window.location.href='/verdict'">See Verdict</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/probe.js"></script>
+</body>
+</html>
