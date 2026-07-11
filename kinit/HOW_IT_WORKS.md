@@ -44,22 +44,33 @@ That's it. Everything else is machinery to make that fair and provable.
 "Verified — I understand this" button per hunk.
 
 **What's actually happening:**
-- The 3 hunks are **hardcoded** — fixed text living in `web/app.py`. Every
-  single run shows the exact same 3 hunks, in the exact same order:
+- The 3 hunks are **read live from the real file**, every single time the
+  page loads — `web/app.py` re-opens `target/loyaltyledger/ledger.py`,
+  finds these 3 same conceptual regions by searching for marker text, and
+  slices out whatever is *currently* there. It is not a fixed string stored
+  in the app; if you edit `ledger.py`, the very next page load shows your
+  edit. The 3 regions themselves are fixed (same 3 topics every time), but
+  their contents are not:
   1. Idempotent event settlement (the duplicate-event / retry logic)
-  2. Tier multipliers & rounding (how points are calculated)
+  2. Tier multipliers & rounding (how points are calculated) — this one is
+     stitched together from *two* separate spots in the file (with a
+     "⋮ unrelated code skipped ⋮" divider between them), because
+     `TIER_MULTIPLIERS` and `_round_half_up` aren't next to each other in
+     the real file — exactly like a real multi-hunk diff would show it.
   3. Redeem: insufficient-balance guard (can you spend exactly what you have?)
 - Nothing is being "merged" in any real sense — this is a framing device.
   The real, unmodified `ledger.py` already exists; you're just being shown
-  slices of it and asked to certify you understand them.
+  live slices of it and asked to certify you understand them.
 - Clicking "Verified" **does** get recorded (which hunk, and how many
   milliseconds after the page loaded you clicked it). This timestamp shows
   up later on the Verdict screen but doesn't affect your score directly.
 - The only thing this screen unlocks is the **Merge** and **Load rehearsal
   twins** buttons, which become clickable once all 3 are verified.
 
-**Is it always the same?** Yes, always identical. This is the one screen
-with zero variability.
+**Is it always the same?** The 3 topics are always the same, but the
+*content* shown for each one is pulled live from the real file every time
+— so it will only ever look identical across runs if `ledger.py` itself
+hasn't changed between them.
 
 ---
 
@@ -218,7 +229,7 @@ report paragraph, a table of the 3 hunks, a 4-number score panel, and a
 
 | Screen | Always identical? |
 |---|---|
-| `/review` (the 3 hunks) | **Yes**, always, every run. |
+| `/review` (the 3 hunks) | The 3 topics are fixed, but the code shown is read live from `ledger.py` — identical only if the file hasn't changed. |
 | `/forge` bugs, live mode | No — fresh AI call, different bugs each time. |
 | `/forge` bugs, rehearsal mode | Yes, same 8 saved bugs — but grading them is done live every time. |
 | `/forge` killed/survived split | Depends on your test suite + which bugs came up. Will change if you edit `test_ledger.py`. |
@@ -233,9 +244,11 @@ report paragraph, a table of the 3 hunks, a 4-number score panel, and a
 You asked for this directly, so here it is, no sugar-coating:
 
 **Stage 1 — Review**
-- The 3 hunks are static. A more rigorous version would pull real hunks
-  from whatever `ledger.py` looks like *right now* (a real diff), so if the
-  file changes, the review screen changes with it.
+- ~~The 3 hunks are static.~~ **Fixed:** the 3 hunks are now read live from
+  the real `ledger.py` on every page load, not stored as fixed text. The 3
+  *topics* are still fixed (idempotency / rounding / redeem), so a further
+  improvement would be picking which regions matter dynamically too (e.g.
+  by diffing against git history) instead of via fixed marker text.
 - "Verified" only measures click speed, not comprehension — nothing stops
   someone from clicking all 3 instantly without reading. A stronger version
   could ask one quick concrete question per hunk before allowing "Verified."
