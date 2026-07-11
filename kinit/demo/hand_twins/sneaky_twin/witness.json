@@ -1,0 +1,59 @@
+{
+  "input_events": [
+    {
+      "event_id": "e1",
+      "user": "u1",
+      "type": "redeem",
+      "amount": 1,
+      "tier": "basic",
+      "retry": false
+    }
+  ],
+  "real_output": {
+    "final_state": {
+      "balances": {},
+      "processed_events": {
+        "e1": "insufficient"
+      },
+      "history": [
+        {
+          "event_id": "e1",
+          "status": "insufficient",
+          "points": 0,
+          "balance": 0
+        }
+      ]
+    },
+    "results": [
+      {
+        "event_id": "e1",
+        "status": "insufficient",
+        "points": 0,
+        "balance": 0
+      }
+    ]
+  },
+  "twin_output": {
+    "final_state": {
+      "balances": {},
+      "processed_events": {},
+      "history": [
+        {
+          "event_id": "e1",
+          "status": "insufficient",
+          "points": 0,
+          "balance": 0
+        }
+      ]
+    },
+    "results": [
+      {
+        "event_id": "e1",
+        "status": "insufficient",
+        "points": 0,
+        "balance": 0
+      }
+    ]
+  },
+  "first_divergence": "processed_events differ: real={'e1': 'insufficient'} twin={}"
+}
