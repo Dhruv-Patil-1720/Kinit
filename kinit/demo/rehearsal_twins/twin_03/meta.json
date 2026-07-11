@@ -1,0 +1,12 @@
+{
+  "description": "Redeem boundary check changed from < to <=, rejecting attempts to redeem the exact current balance.",
+  "divergence_hint": {
+    "event_sequence": [
+      "User 'alice' earns 10 points (tier 'basic').",
+      "User 'alice' attempts to redeem exactly 10 points."
+    ]
+  },
+  "bug_family": "rare-path",
+  "backend": "generate_content:gemini-3.5-flash",
+  "attempts": 1
+}

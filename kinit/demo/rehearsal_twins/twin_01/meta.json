@@ -1,0 +1,16 @@
+{
+  "description": "Strict comparison prevents users from redeeming their exact balance amount",
+  "divergence_hint": {
+    "event_sequence": [
+      {
+        "action": "settle_event with earn event of 100 points for basic tier"
+      },
+      {
+        "action": "settle_event with redeem event of 100 points for basic tier"
+      }
+    ]
+  },
+  "bug_family": "boundary",
+  "backend": "generate_content:gemini-3.5-flash",
+  "attempts": 1
+}

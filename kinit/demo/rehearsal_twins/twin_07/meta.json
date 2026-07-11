@@ -1,0 +1,25 @@
+{
+  "description": "Validation check uses 'tier' instead of 'multiplier' to detect invalid tiers, causing a TypeError when calculating points for unrecognized non-None tiers.",
+  "divergence_hint": {
+    "event_sequence": [
+      {
+        "action": "settle_event",
+        "state": {
+          "balances": {},
+          "processed_events": {},
+          "history": []
+        },
+        "event": {
+          "event_id": "evt_1",
+          "user": "alice",
+          "type": "earn",
+          "amount": 100,
+          "tier": "platinum"
+        }
+      }
+    ]
+  },
+  "bug_family": "rare-path",
+  "backend": "generate_content:gemini-3.5-flash",
+  "attempts": 1
+}

@@ -1,0 +1,17 @@
+{
+  "description": "Earned points are truncated via integer conversion instead of rounded half-up.",
+  "divergence_hint": {
+    "event_sequence": [
+      {
+        "event_id": "evt_1",
+        "user": "alice",
+        "type": "earn",
+        "amount": 1,
+        "tier": "silver"
+      }
+    ]
+  },
+  "bug_family": "rounding",
+  "backend": "generate_content:gemini-3.5-flash",
+  "attempts": 1
+}

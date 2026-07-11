@@ -1,0 +1,23 @@
+{
+  "description": "User's balance mutated in state before checking if they have sufficient funds to redeem.",
+  "divergence_hint": {
+    "event_sequence": [
+      {
+        "event_id": "evt1",
+        "user": "alice",
+        "type": "earn",
+        "amount": 50,
+        "tier": "basic"
+      },
+      {
+        "event_id": "evt2",
+        "user": "alice",
+        "type": "redeem",
+        "amount": 100
+      }
+    ]
+  },
+  "bug_family": "order-of-operations",
+  "backend": "generate_content:gemini-3.5-flash",
+  "attempts": 1
+}

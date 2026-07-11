@@ -74,6 +74,16 @@ def test_redeem_success_deducts_balance():
     assert state["balances"]["alice"] == 60
 
 
+def test_redeem_of_exact_balance_succeeds_and_zeroes_out():
+    state = new_state()
+    state, _ = settle_event(state, make_event("e1", "alice", "earn", 25, tier="basic"))
+
+    state, result = settle_event(state, make_event("e2", "alice", "redeem", 25))
+
+    assert result["status"] == "redeemed"
+    assert state["balances"]["alice"] == 0
+
+
 def test_redeem_with_insufficient_balance_fails_without_mutating():
     state = new_state()
     state, _ = settle_event(state, make_event("e1", "alice", "earn", 10, tier="basic"))

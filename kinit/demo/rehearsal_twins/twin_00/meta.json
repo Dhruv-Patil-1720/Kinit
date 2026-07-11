@@ -1,0 +1,16 @@
+{
+  "description": "balance mutated in state before sufficient balance check in redeem branch",
+  "divergence_hint": {
+    "event_sequence": [
+      {
+        "type": "redeem",
+        "amount": 100,
+        "user": "alice"
+      },
+      "inspect returned state balances for user 'alice' to observe that it decreased despite result being 'insufficient'"
+    ]
+  },
+  "bug_family": "order-of-operations",
+  "backend": "generate_content:gemini-3.5-flash",
+  "attempts": 1
+}

@@ -1,0 +1,12 @@
+{
+  "description": "points calculation truncates fractional values instead of rounding half up",
+  "divergence_hint": {
+    "event_sequence": [
+      "settle an 'earn' event with amount=5 and tier='silver'",
+      "observe that points awarded is 7 instead of 8"
+    ]
+  },
+  "bug_family": "rounding",
+  "backend": "generate_content:gemini-3.5-flash",
+  "attempts": 1
+}

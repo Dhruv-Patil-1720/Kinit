@@ -1,0 +1,21 @@
+{
+  "description": "exact balance redemption rejected as insufficient due to off-by-one <= operator",
+  "divergence_hint": {
+    "event_sequence": [
+      {
+        "event_type": "earn",
+        "user": "user1",
+        "amount": 100,
+        "tier": "basic"
+      },
+      {
+        "event_type": "redeem",
+        "user": "user1",
+        "amount": 100
+      }
+    ]
+  },
+  "bug_family": "boundary",
+  "backend": "generate_content:gemini-3.5-flash",
+  "attempts": 1
+}
