@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.DS_Store
+
+# runs/ holds generated run artifacts; ignore everything in it except the
+# placeholder that keeps the (otherwise empty) directory tracked in git.
+runs/*
+!runs/.gitkeep
