@@ -96,8 +96,6 @@ def settle_event(state, event):
             return finalize("invalid", 0, current_balance)
 
         points = _round_half_up(amount, multiplier)
-        # processed_events is set inside finalize() before this line's
-        # effect (the balance write below) is committed to new_state_.
         new_balance = new_state_["balances"].get(user, 0) + points
         new_state_["balances"][user] = new_balance
         return finalize("earned", points, new_balance)

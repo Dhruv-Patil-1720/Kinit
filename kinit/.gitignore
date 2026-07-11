@@ -5,6 +5,13 @@ __pycache__/
 venv/
 .DS_Store
 
+# Secrets — never commit API keys. (.env.example is a safe, key-less
+# template and is intentionally tracked.)
+.env
+.env.*
+!.env.example
+*.key
+
 # runs/ holds generated run artifacts; ignore everything in it except the
 # placeholder that keeps the (otherwise empty) directory tracked in git.
 runs/*

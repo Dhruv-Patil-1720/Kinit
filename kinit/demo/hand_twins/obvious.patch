@@ -1,0 +1,13 @@
+diff --git a/ledger.py b/ledger.py
+index 7ada344..c495576 100644
+--- a/ledger.py
++++ b/ledger.py
+@@ -29,7 +29,7 @@ from decimal import ROUND_HALF_UP, Decimal
+ TIER_MULTIPLIERS = {
+     "basic": Decimal("1.0"),
+     "silver": Decimal("1.5"),
+-    "gold": Decimal("2.0"),
++    "gold": Decimal("3.0"),
+ }
+ 
+ VALID_TYPES = {"earn", "redeem"}

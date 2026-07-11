@@ -1,0 +1,24 @@
+diff --git a/ledger.py b/ledger.py
+index 7ada344..7fc9e6d 100644
+--- a/ledger.py
++++ b/ledger.py
+@@ -75,14 +75,13 @@ def settle_event(state, event):
+     tier = event.get("tier")
+ 
+     def finalize(status, points, balance):
+-        # Record the event_id as processed BEFORE any balance mutation is
+-        # visible in the returned state. This ordering guarantees that a
+-        # later replay of the same event_id is always treated as a
+-        # duplicate, regardless of whether this attempt earned, redeemed,
+-        # or failed validation.
+-        new_state_["processed_events"][event_id] = status
++        # Only mark the event as processed once its balance effect has
++        # actually landed. Invalid/insufficient attempts fall through
++        # without being recorded here.
+         result = _make_result(event_id, status, points, balance)
+         new_state_["history"].append(result)
++        if status in ("earned", "redeemed"):
++            new_state_["processed_events"][event_id] = status
+         return new_state_, result
+ 
+     if not isinstance(amount, int) or isinstance(amount, bool) or amount <= 0:
