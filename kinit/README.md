@@ -190,7 +190,3 @@ time, state held in-memory plus `runs/<id>/` files on disk:
    Narrator's 3-sentence judgment report. Writes `runs/<id>/ledger.json`.
    "Show artifacts" lists every file the run produced.
 
-## Team
-
-<!-- TODO: fill in your team/hackathon names here -->
-- _add names here_

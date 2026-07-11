@@ -69,26 +69,17 @@ HUNK_BUG_FAMILIES = {
     "redeem_check": {"boundary"},
 }
 
-HUNKS = [
+# Each hunk is located in the *actual current* target/loyaltyledger/ledger.py
+# by a pair of substring markers, not by a hardcoded copy of its text. Every
+# call to /api/hunks re-reads the real file and re-slices it live, so if the
+# target service is ever edited, the review screen reflects the edit on the
+# very next page load -- nothing here is a frozen snapshot.
+HUNK_SPECS = [
     {
         "id": "idempotency",
         "title": "Idempotent event settlement",
-        "file": "target/loyaltyledger/ledger.py",
-        "hunk_header": "@@ settle_event: duplicate check + finalize() @@",
-        "lines": [
-            {"t": "ctx", "s": "def settle_event(state, event):"},
-            {"t": "ctx", "s": '    event_id = event["event_id"]'},
-            {"t": "add", "s": ""},
-            {"t": "add", "s": '    if event_id in state["processed_events"]:'},
-            {"t": "add", "s": '        unchanged_balance = state["balances"].get(event.get("user"), 0)'},
-            {"t": "add", "s": '        result = _make_result(event_id, "duplicate", 0, unchanged_balance)'},
-            {"t": "add", "s": "        return copy.deepcopy(state), result"},
-            {"t": "add", "s": ""},
-            {"t": "add", "s": "    def finalize(status, points, balance):"},
-            {"t": "add", "s": '        new_state_["processed_events"][event_id] = status'},
-            {"t": "add", "s": "        result = _make_result(event_id, status, points, balance)"},
-            {"t": "add", "s": '        new_state_["history"].append(result)'},
-            {"t": "add", "s": "        return new_state_, result"},
+        "parts": [
+            {"start_marker": "def settle_event(state, event):", "end_marker": "return new_state_, result"},
         ],
         "caption": (
             "Every event_id gets recorded as processed BEFORE we return \u2014 for every "
@@ -99,19 +90,14 @@ HUNKS = [
     {
         "id": "rounding",
         "title": "Tier multipliers & rounding",
-        "file": "target/loyaltyledger/ledger.py",
-        "hunk_header": "@@ TIER_MULTIPLIERS + _round_half_up @@",
-        "lines": [
-            {"t": "add", "s": "TIER_MULTIPLIERS = {"},
-            {"t": "add", "s": '    "basic": Decimal("1.0"),'},
-            {"t": "add", "s": '    "silver": Decimal("1.5"),'},
-            {"t": "add", "s": '    "gold": Decimal("2.0"),'},
-            {"t": "add", "s": "}"},
-            {"t": "add", "s": ""},
-            {"t": "add", "s": "def _round_half_up(amount, multiplier):"},
-            {"t": "add", "s": '    """Round amount * multiplier to the nearest int, .5 rounds up."""'},
-            {"t": "add", "s": "    exact = Decimal(amount) * multiplier"},
-            {"t": "add", "s": '    return int(exact.quantize(Decimal("1"), rounding=ROUND_HALF_UP))'},
+        # Two separate parts: TIER_MULTIPLIERS and _round_half_up aren't
+        # adjacent in the file (new_state() sits between them), so a single
+        # contiguous slice would drag in unrelated code. Real diffs handle
+        # this with more than one @@ hunk against the same file; we do the
+        # same thing here, live, off the two markers below.
+        "parts": [
+            {"start_marker": "TIER_MULTIPLIERS = {", "end_marker": '"gold": Decimal("2.0"),'},
+            {"start_marker": "def _round_half_up(amount, multiplier):", "end_marker": "rounding=ROUND_HALF_UP"},
         ],
         "caption": (
             "Points = amount \u00d7 tier multiplier, rounded half-up via Decimal \u2014 not "
@@ -121,17 +107,8 @@ HUNKS = [
     {
         "id": "redeem_check",
         "title": "Redeem: insufficient-balance guard",
-        "file": "target/loyaltyledger/ledger.py",
-        "hunk_header": "@@ settle_event: redeem branch @@",
-        "lines": [
-            {"t": "add", "s": '    if event_type == "redeem":'},
-            {"t": "add", "s": '        current_balance = new_state_["balances"].get(user, 0)'},
-            {"t": "add", "s": "        if current_balance < amount:"},
-            {"t": "add", "s": '            return finalize("insufficient", 0, current_balance)'},
-            {"t": "add", "s": ""},
-            {"t": "add", "s": "        new_balance = current_balance - amount"},
-            {"t": "add", "s": '        new_state_["balances"][user] = new_balance'},
-            {"t": "add", "s": '        return finalize("redeemed", amount, new_balance)'},
+        "parts": [
+            {"start_marker": 'if event_type == "redeem":', "end_marker": 'return finalize("redeemed", amount, new_balance)'},
         ],
         "caption": (
             "Strict `<` \u2014 redeeming exactly your full balance succeeds and zeroes it "
@@ -139,7 +116,84 @@ HUNKS = [
         ),
     },
 ]
-assert [h["id"] for h in HUNKS] == HUNKS_ORDER
+assert [h["id"] for h in HUNK_SPECS] == HUNKS_ORDER
+
+LEDGER_SOURCE_PATH = REPO_ROOT / "target" / "loyaltyledger" / "ledger.py"
+LEDGER_REL_PATH = "target/loyaltyledger/ledger.py"
+
+GAP_MARKER = "\u22ee"  # vertical ellipsis: "unrelated code was skipped here"
+
+
+def _extract_block(lines, start_marker, end_marker):
+    """Slice out [start_marker line .. end_marker line] (inclusive) from the
+    live file. Returns (block_lines, one_based_start_line) or None if either
+    marker can't be found anymore (e.g. the file was refactored) -- callers
+    must degrade gracefully rather than crash the review screen."""
+    start_idx = next((i for i, line in enumerate(lines) if start_marker in line), None)
+    if start_idx is None:
+        return None
+    end_idx = next((i for i in range(start_idx, len(lines)) if end_marker in lines[i]), None)
+    if end_idx is None:
+        return None
+    # Fold in a lone closing bracket immediately after the match, so a dict
+    # or list literal we cut off mid-value still renders as a complete block.
+    if end_idx + 1 < len(lines) and lines[end_idx + 1].strip() in ("}", ")", "]"):
+        end_idx += 1
+    return lines[start_idx : end_idx + 1], start_idx + 1
+
+
+def _not_found_hunk(spec):
+    return {
+        "id": spec["id"],
+        "title": spec["title"],
+        "file": LEDGER_REL_PATH,
+        "hunk_header": "@@ region not found \u2014 ledger.py may have changed @@",
+        "lines": [],
+        "caption": (
+            f"Could not locate this hunk in the current {LEDGER_REL_PATH} "
+            "(the markers this review screen looks for may be out of date)."
+        ),
+    }
+
+
+def build_hunks():
+    """Read target/loyaltyledger/ledger.py right now and cut out the 3 review
+    hunks live. This is the "AI-generated PR" the reviewer sees -- computed
+    fresh every call, never a fixed string baked into this file."""
+    source_text = LEDGER_SOURCE_PATH.read_text()
+    lines = source_text.splitlines()
+
+    hunks = []
+    for spec in HUNK_SPECS:
+        rendered = []
+        first_start_line = None
+
+        for i, part in enumerate(spec["parts"]):
+            extracted = _extract_block(lines, part["start_marker"], part["end_marker"])
+            if extracted is None:
+                rendered = None
+                break
+            block_lines, start_line = extracted
+            first_start_line = first_start_line or start_line
+            if i > 0:
+                rendered.append(GAP_MARKER)
+            rendered.extend(block_lines)
+
+        if rendered is None:
+            hunks.append(_not_found_hunk(spec))
+            continue
+
+        hunks.append(
+            {
+                "id": spec["id"],
+                "title": spec["title"],
+                "file": LEDGER_REL_PATH,
+                "hunk_header": f"@@ -0,0 +{first_start_line},{len(rendered)} @@ {spec['title']}",
+                "lines": [{"t": "gap", "s": ln} if ln == GAP_MARKER else {"t": "add", "s": ln} for ln in rendered],
+                "caption": spec["caption"],
+            }
+        )
+    return hunks
 
 
 class ForgeErrorCandidate(Exception):
@@ -440,7 +494,7 @@ def verdict_page():
 
 @app.get("/api/hunks")
 def api_hunks():
-    return {"hunks": HUNKS}
+    return {"hunks": build_hunks()}
 
 
 class VerifyPayload(BaseModel):

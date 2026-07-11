@@ -7,6 +7,9 @@
   const rehearsalBtn = document.getElementById("rehearsal-btn");
 
   function lineHtml(line) {
+    if (line.t === "gap") {
+      return `<div class="line gap">${line.s}  unrelated code skipped  ${line.s}</div>`;
+    }
     const cls = line.t === "add" ? "add" : "ctx";
     const escaped = line.s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     return `<div class="line ${cls}">${escaped || " "}</div>`;
